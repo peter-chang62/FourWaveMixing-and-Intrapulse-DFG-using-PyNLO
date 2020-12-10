@@ -1,6 +1,9 @@
 import numpy as np
 from Fiber_PPLN_NLSE import Pulse, PPLN, PPLNThreeWaveMixing, FiberFourWaveMixing, Fiber
 import matplotlib.pyplot as plt
+import clipboard_and_style_sheet
+
+clipboard_and_style_sheet.style_sheet()
 
 
 def normalize(vec):
