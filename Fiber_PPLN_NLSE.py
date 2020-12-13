@@ -421,4 +421,4 @@ class Fiber(FiberInstance):
         elif dispersion_format == 'D':
             self.betas = np.array(self.convert_D_to_beta(center_wl_nm, betas_Ds[0], betas_Ds[1]))
         else:
-            raise ValueError("dispersion format should either be GVD of D")
+            raise ValueError("dispersion format should either be GVD or D")
