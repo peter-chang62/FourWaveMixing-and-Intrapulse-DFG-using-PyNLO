@@ -1,1 +1,1 @@
-# ThreeWaveMixing-and-Intrapulse-DFG-using-PyNLO
+# FourWaveMixing-and-Intrapulse-DFG-using-PyNLO
