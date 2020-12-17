@@ -16,11 +16,11 @@ path = 'C:/Users/pchan/Documents/Research Projects/PyNLO_project_for_new_system_
 data_temp = np.genfromtxt(path + 'ReconstructedPulseTemporal.txt')
 data_spec = np.genfromtxt(path + 'ReconstructedPulseSpectrum.txt')
 center_wavelength_nm = data_spec[:, 2][len(data_spec) // 2] * 1e3
+pulse = fpn.Pulse(center_wavelength_nm=center_wavelength_nm, EPP_nJ=1.4)
 
 
 # don't forget to negate the phase
 def get_data(string):
-    pulse = fpn.Pulse(center_wavelength_nm=center_wavelength_nm)
     if string == 'temp':
         # data_temp = np.genfromtxt(path + 'ReconstructedPulseTemporal.txt')
         amp = data_temp[:, 0]
