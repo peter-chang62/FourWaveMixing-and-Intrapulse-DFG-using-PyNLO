@@ -57,7 +57,7 @@ class Evol:
             fig, ax = plt.subplots(1, 1)
         ax.pcolormesh(self.pulse.wl_um[ind], self.zs, self.toplot.T[ind].T, shading='auto', cmap='jet')
         ax.set_xlabel('wavelength ($\mathrm{\mu m}$)')
-        ax.set_ylabel("a.u.")
+        ax.set_ylabel("z (cm)")
 
     def plot_1dwindow(self, ax=None):
         ind = np.where(self.pulse.wl_um >= 0)
@@ -70,7 +70,16 @@ class Evol:
         ax.set_ylabel("a.u.")
 
 
+def constant_poling_period(period):
+    return np.repeat(period, 5000)
+
+
+def appln_poling_period(ll_um, ul_um):
+    return np.linspace(ll_um, ul_um, 5000)
+
+
 pulse = get_data('spec')
+
 
 # it checks out
 # fig, (ax1, ax2) = plt.subplots(1, 2)
@@ -79,13 +88,31 @@ pulse = get_data('spec')
 # ax2.plot(pulse_spec.T_ps, normalize(abs(pulse_spec.AT) ** 2))
 # ax2.plot(data_temp[:, 2] / 1000, data_temp[:, 0])
 
-ppln = fpn.PPLN()
-ppln.generate_ppln(pulse, .001, 1550, np.linspace(27.5, 31.6, 5000))
 
-ssfm = fpn.PPLNThreeWaveMixing()
-sim_ppln = ssfm.propagate(pulse, ppln, 100)
+def sim_poling_period(poling_period, plotting=True, title=None):
+    ppln = fpn.PPLN()
+    ppln.generate_ppln(pulse, .001, 1550, poling_period)
 
-evol = Evol(sim_ppln)
-fig, (ax1, ax2) = plt.subplots(1, 2)
-evol.plot_1dwindow(ax1)
-evol.plot_2dwindow(3, 5, ax2)
+    ssfm = fpn.PPLNThreeWaveMixing()
+    sim_ppln = ssfm.propagate(pulse, ppln, 100)
+
+    evol = Evol(sim_ppln)
+    if plotting:
+        plot(evol, title)
+    return sim_ppln, evol
+
+
+def plot(evol, title=None):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+    evol.plot_1dwindow(ax1)
+    evol.plot_2dwindow(3, 5, ax2)
+    if title is not None:
+        fig.suptitle(title)
+
+
+sim_appln, evol_appln = sim_poling_period(appln_poling_period(27.5, 31.6), plotting=True,
+                                          title='27.5 - 31.6 $\mathrm{\mu m}$')
+sim_27_5, evol_27_5 = sim_poling_period(constant_poling_period(27.5), plotting=True,
+                                        title='27.5 $\mathrm{\mu m}$')
+sim_31_6, evol_31_6 = sim_poling_period(constant_poling_period(31.6), plotting=True,
+                                        title='31.6 $\mathrm{\mu m}$')
