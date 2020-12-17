@@ -44,7 +44,7 @@ class Evol:
     def __init__(self, evol):
         self.pulse = evol.pulse
         self.AW2d = evol.AW
-        self.zs = evol.zs * 1e2
+        self.zs = evol.zs * 1e3
 
         toplot = abs(self.AW2d) ** 2
         toplot = (toplot.T / np.max(toplot, axis=1)).T
@@ -57,7 +57,7 @@ class Evol:
             fig, ax = plt.subplots(1, 1)
         ax.pcolormesh(self.pulse.wl_um[ind], self.zs, self.toplot.T[ind].T, shading='auto', cmap='jet')
         ax.set_xlabel('wavelength ($\mathrm{\mu m}$)')
-        ax.set_ylabel("z (cm)")
+        ax.set_ylabel("z (mm)")
 
     def plot_1dwindow(self, ax=None):
         ind = np.where(self.pulse.wl_um >= 0)
@@ -68,6 +68,15 @@ class Evol:
         ax.set_ylim(1e-6, 1)
         ax.set_xlabel('wavelength ($\mathrm{\mu m}$)')
         ax.set_ylabel("a.u.")
+
+    def plot_power_in_window(self, ll_um, ul_um, ax=None):
+        power = fpn.power_in_window(self.pulse, self.AW2d, ll_um, ul_um, frep_MHz=1e3) * 1e3
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        ax.plot(self.zs, power, '.')
+        ax.set_xlabel("z (mm)")
+        ax.set_ylabel("mW")
+        return power
 
 
 def constant_poling_period(period):
@@ -103,9 +112,10 @@ def sim_poling_period(poling_period, plotting=True, title=None):
 
 
 def plot(evol, title=None):
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
     evol.plot_1dwindow(ax1)
     evol.plot_2dwindow(3, 5, ax2)
+    evol.plot_power_in_window(3, 5, ax3)
     if title is not None:
         fig.suptitle(title)
 

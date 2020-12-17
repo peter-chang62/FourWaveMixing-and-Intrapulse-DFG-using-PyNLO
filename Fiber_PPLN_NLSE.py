@@ -7,8 +7,10 @@ from pynlo.media.fibers.fiber import FiberInstance
 from scipy.interpolate import interp1d, InterpolatedUnivariateSpline
 from scipy.special import erf
 from pynlo.interactions.FourWaveMixing.SSFM import SSFM
-from numpy.fft import fftshift
 from pynlo.media.crystals.XTAL_PPLN import DengSellmeier
+from numpy.fft import fftshift, fft
+from scipy.integrate import simps
+from scipy.signal import butter, freqz
 
 
 # prevent divide by zero errors
@@ -422,3 +424,22 @@ class Fiber(FiberInstance):
             self.betas = np.array(self.convert_D_to_beta(center_wl_nm, betas_Ds[0], betas_Ds[1]))
         else:
             raise ValueError("dispersion format should either be GVD or D")
+
+
+def get_bandpass_filter(ref_pulse, ll_um, ul_um):
+    indices = np.where(np.logical_and(ref_pulse.wl_um >= ll_um, ref_pulse.wl_um <= ul_um))
+    w = np.linspace(0, 1, len(ref_pulse.F_THz))
+    Wn = np.array(w[indices][[0, -1]])
+
+    order = 4
+    b, a = butter(N=order, Wn=Wn, btype='bandpass', analog=False)
+    w, h = freqz(b=b, a=a, worN=len(ref_pulse.F_THz))
+    return h
+
+
+def power_in_window(pulse, AW, ll_um, ul_um, frep_MHz):
+    h = get_bandpass_filter(pulse, ll_um, ul_um)
+    h = abs(h)
+    filtered = AW * h
+    AT = fftshift(fft(fftshift(filtered, axes=1), axis=1), axes=1)
+    return simps(abs(AT) ** 2, axis=1) * pulse.dT_mks * frep_MHz * 1e6
