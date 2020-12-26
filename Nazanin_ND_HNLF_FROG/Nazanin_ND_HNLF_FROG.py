@@ -91,11 +91,13 @@ pulse = get_data('spec')
 
 
 # it checks out
-# fig, (ax1, ax2) = plt.subplots(1, 2)
-# ax1.plot(pulse_temp.F_THz, normalize(abs(pulse_temp.AW) ** 2))
-# ax1.plot(300 / data_spec[:, 2], normalize(data_spec[:, 0]))
-# ax2.plot(pulse_spec.T_ps, normalize(abs(pulse_spec.AT) ** 2))
-# ax2.plot(data_temp[:, 2] / 1000, data_temp[:, 0])
+pulse_temp = get_data('temp')
+pulse_spec = get_data('spec')
+fig, (ax1, ax2) = plt.subplots(1, 2)
+ax1.plot(pulse_temp.F_THz, normalize(abs(pulse_temp.AW) ** 2))
+ax1.plot(300 / data_spec[:, 2], normalize(data_spec[:, 0]))
+ax2.plot(pulse_spec.T_ps, normalize(abs(pulse_spec.AT) ** 2))
+ax2.plot(data_temp[:, 2] / 1000, data_temp[:, 0])
 
 
 def sim_poling_period(poling_period, plotting=True, title=None):
@@ -120,9 +122,9 @@ def plot(evol, title=None):
         fig.suptitle(title)
 
 
-sim_appln, evol_appln = sim_poling_period(appln_poling_period(27.5, 31.6), plotting=True,
-                                          title='27.5 - 31.6 $\mathrm{\mu m}$')
-sim_27_5, evol_27_5 = sim_poling_period(constant_poling_period(27.5), plotting=True,
-                                        title='27.5 $\mathrm{\mu m}$')
-sim_31_6, evol_31_6 = sim_poling_period(constant_poling_period(31.6), plotting=True,
-                                        title='31.6 $\mathrm{\mu m}$')
+# sim_appln, evol_appln = sim_poling_period(appln_poling_period(27.5, 31.6), plotting=True,
+#                                           title='27.5 - 31.6 $\mathrm{\mu m}$')
+# sim_27_5, evol_27_5 = sim_poling_period(constant_poling_period(27.5), plotting=True,
+#                                         title='27.5 $\mathrm{\mu m}$')
+# sim_31_6, evol_31_6 = sim_poling_period(constant_poling_period(31.6), plotting=True,
+#                                         title='31.6 $\mathrm{\mu m}$')
