@@ -16,28 +16,49 @@ path = 'C:/Users/pchan/Documents/Research Projects/PyNLO_project_for_new_system_
 data_temp = np.genfromtxt(path + 'ReconstructedPulseTemporal.txt')
 data_spec = np.genfromtxt(path + 'ReconstructedPulseSpectrum.txt')
 center_wavelength_nm = data_spec[:, 2][len(data_spec) // 2] * 1e3
-pulse = fpn.Pulse(center_wavelength_nm=center_wavelength_nm, EPP_nJ=1.4)
 
 
 # don't forget to negate the phase
 def get_data(string):
     if string == 'temp':
-        # data_temp = np.genfromtxt(path + 'ReconstructedPulseTemporal.txt')
+        """From plotting, it appears that the temporal data is given in terms of amplitude, so we should NOT have to 
+        take a square root here """
+        pulse = fpn.Pulse(center_wavelength_nm=center_wavelength_nm, EPP_nJ=1.4)
         amp = data_temp[:, 0]
         phase = - data_temp[:, 1]
         T_ps = data_temp[:, 2] / 1000
         AT = amp * np.exp(1j * phase)
         pulse.set_AT_experiment(T_ps, AT)
     elif string == 'spec':
-        # data_spec = np.genfromtxt(path + 'ReconstructedPulseSpectrum.txt')
-        lamda = data_spec[:, 2]
+        """From plotting, it appears that the frequency data is given in terms of power, so we should have to take 
+        the square root to get the amplitude here """
+        pulse = fpn.Pulse(center_wavelength_nm=center_wavelength_nm, EPP_nJ=1.4)
+        amp = np.sqrt(data_spec[:, 0])
         phase = - data_spec[:, 1]
-        amp = data_spec[:, 0]
+        lamda = data_spec[:, 2]
         AW = amp * np.exp(1j * phase)
         pulse.set_AW_experiment(lamda, AW)
     else:
         raise ValueError('string should be either temp or spec')
     return pulse
+
+
+pulse = get_data('spec')
+
+
+# it checks out
+# pulse_temp = get_data('temp')
+# pulse_spec = get_data('spec')
+# indices = np.where(pulse.wl_nm >= 0)
+# fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+# ax1.plot(pulse_temp.wl_um[indices], normalize(abs(pulse_temp.AW[indices]) ** 2), label='retrieved')
+# ax1.plot(data_spec[:, 2], normalize(data_spec[:, 0]), label='data')
+# ax1.legend(loc='best')
+# ax1.set_xlim(1, 2)
+# ax2.plot(pulse_spec.T_ps, normalize(abs(pulse_spec.AT) ** 2), label='retrieved')
+# ax2.plot(data_temp[:, 2] / 1000, data_temp[:, 0] ** 2, label='data')
+# ax2.set_xlim(-.5, .5)
+# ax2.legend(loc='best')
 
 
 class Evol:
@@ -87,19 +108,6 @@ def appln_poling_period(ll_um, ul_um):
     return np.linspace(ll_um, ul_um, 5000)
 
 
-pulse = get_data('spec')
-
-
-# it checks out
-pulse_temp = get_data('temp')
-pulse_spec = get_data('spec')
-fig, (ax1, ax2) = plt.subplots(1, 2)
-ax1.plot(pulse_temp.F_THz, normalize(abs(pulse_temp.AW) ** 2))
-ax1.plot(300 / data_spec[:, 2], normalize(data_spec[:, 0]))
-ax2.plot(pulse_spec.T_ps, normalize(abs(pulse_spec.AT) ** 2))
-ax2.plot(data_temp[:, 2] / 1000, data_temp[:, 0])
-
-
 def sim_poling_period(poling_period, plotting=True, title=None):
     ppln = fpn.PPLN()
     ppln.generate_ppln(pulse, .001, 1550, poling_period)
@@ -122,9 +130,18 @@ def plot(evol, title=None):
         fig.suptitle(title)
 
 
-# sim_appln, evol_appln = sim_poling_period(appln_poling_period(27.5, 31.6), plotting=True,
-#                                           title='27.5 - 31.6 $\mathrm{\mu m}$')
-# sim_27_5, evol_27_5 = sim_poling_period(constant_poling_period(27.5), plotting=True,
-#                                         title='27.5 $\mathrm{\mu m}$')
-# sim_31_6, evol_31_6 = sim_poling_period(constant_poling_period(31.6), plotting=True,
-#                                         title='31.6 $\mathrm{\mu m}$')
+sim_appln, evol_appln = sim_poling_period(appln_poling_period(27.5, 31.6), plotting=True,
+                                          title='27.5 - 31.6 $\mathrm{\mu m}$')
+sim_27_5, evol_27_5 = sim_poling_period(constant_poling_period(27.5), plotting=True,
+                                        title='27.5 $\mathrm{\mu m}$')
+sim_31_6, evol_31_6 = sim_poling_period(constant_poling_period(31.6), plotting=True,
+                                        title='31.6 $\mathrm{\mu m}$')
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15,5))
+indices = np.where(pulse.wl_nm >= 0)
+ax1.plot(pulse.wl_um[indices], normalize(abs(pulse.AW[indices]) ** 2))
+ax1.set_xlim(1.2, 1.8)
+ax2.plot(pulse.T_ps, normalize(abs(pulse.AT) ** 2))
+ax2.set_xlim(-.5, .5)
+ax1.set_xlabel("wavelength ($\mathrm{\mu m}$)")
+ax2.set_xlabel("T (ps)")

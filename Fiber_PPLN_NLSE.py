@@ -86,7 +86,7 @@ class Pulse(SechPulse):
     # utilizes the pulse class's already built in set_AT function
     def set_AT_experiment(self, T_ps, AT):
         # linearly interpolating function based on the passed in time grid and electric field
-        gridded = interp1d(T_ps, AT, kind='linear', bounds_error=False, fill_value=0 + 0j)
+        gridded = interp1d(T_ps, AT, kind='cubic', bounds_error=False, fill_value=0 + 0j)
 
         # the interpolated electric field on the pulse's time grid
         AT_new = gridded(self.T_ps)
@@ -101,7 +101,7 @@ class Pulse(SechPulse):
     # utilizes the pulse class's already built in set_AW function
     def set_AW_experiment(self, lda_um, AW):
         # linearly interpolating function based on the passed in wavelength grid and electric field
-        gridded = interp1d(lda_um, AW, kind='linear', bounds_error=False, fill_value=0 + 0j)
+        gridded = interp1d(lda_um, AW, kind='cubic', bounds_error=False, fill_value=0 + 0j)
 
         # the interpolated electric field on the pulse's wavelength grid
         AW_new = gridded(self.wl_um)
