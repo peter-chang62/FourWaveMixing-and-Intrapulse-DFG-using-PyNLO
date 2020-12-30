@@ -86,10 +86,14 @@ class Pulse(SechPulse):
     # utilizes the pulse class's already built in set_AT function
     def set_AT_experiment(self, T_ps, AT):
         # linearly interpolating function based on the passed in time grid and electric field
-        gridded = interp1d(T_ps, AT, kind='cubic', bounds_error=False, fill_value=0 + 0j)
+        gridded_amplitude = interp1d(T_ps, abs(AT), kind='linear', bounds_error=False, fill_value=0)
+        gridded_phase = interp1d(T_ps, np.unwrap(np.arctan2(AT.imag, AT.real)), kind='linear', bounds_error=False,
+                                 fill_value=0)
+        amplitude = gridded_amplitude(self.T_ps)
+        phase = gridded_phase(self.T_ps)
 
         # the interpolated electric field on the pulse's time grid
-        AT_new = gridded(self.T_ps)
+        AT_new = amplitude * np.exp(1j * phase)
 
         # set the pulse's electric field to the new one
         self.set_AT(AT_new)
@@ -99,12 +103,16 @@ class Pulse(SechPulse):
 
     # set a new field based on: lambda (um), electric field in frequency domain
     # utilizes the pulse class's already built in set_AW function
-    def set_AW_experiment(self, lda_um, AW):
-        # linearly interpolating function based on the passed in wavelength grid and electric field
-        gridded = interp1d(lda_um, AW, kind='cubic', bounds_error=False, fill_value=0 + 0j)
+    def set_AW_experiment(self, wl_um, AW):
+        # linearly interpolating function based on the passed in time grid and electric field
+        gridded_amplitude = interp1d(wl_um, abs(AW), kind='linear', bounds_error=False, fill_value=0)
+        gridded_phase = interp1d(wl_um, np.unwrap(np.arctan2(AW.imag, AW.real)), kind='linear', bounds_error=False,
+                                 fill_value=0)
+        amplitude = gridded_amplitude(self.wl_um)
+        phase = gridded_phase(self.wl_um)
 
-        # the interpolated electric field on the pulse's wavelength grid
-        AW_new = gridded(self.wl_um)
+        # the interpolated electric field on the pulse's time grid
+        AW_new = amplitude * np.exp(1j * phase)
 
         # set the pulse's electric field to the new one
         self.set_AW(AW_new)

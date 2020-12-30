@@ -11,6 +11,10 @@ c = 299792458  # m/s
 
 # shorter wavelength, longer wavelength -> phase mismatch in 1/um
 def phase_mismatch(wl1_um, wl2_um):
+    """
+    k = n / lambda
+    k1 - k2 = k3
+    """
     n1 = ppln.n(wl1_um * 1e3)
     n2 = ppln.n(wl2_um * 1e3)
     k1 = n1 / wl1_um
@@ -23,6 +27,9 @@ def phase_mismatch(wl1_um, wl2_um):
 
 
 def calc_dfg_wl(wl1_um, wl2_um):
+    """
+    1 / lambda3 = 1 / lambda1 - 1 / lambda2
+    """
     return 1 / ((1 / wl1_um) - (1 / wl2_um))
 
 
