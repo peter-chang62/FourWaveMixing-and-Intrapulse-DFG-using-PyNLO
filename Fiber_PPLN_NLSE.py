@@ -129,8 +129,6 @@ class PPLN(FiberInstance):
     def __init__(self):
         super().__init__()
 
-        self.beta0 = None
-
     # set the refractive index to that of PPLN
     def set_refractive_index(self, lda_um, n):
         lda_nm = lda_um * 1e3
