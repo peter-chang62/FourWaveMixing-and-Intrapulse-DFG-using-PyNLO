@@ -7,8 +7,10 @@ from pynlo.media.fibers.fiber import FiberInstance
 from scipy.interpolate import interp1d, InterpolatedUnivariateSpline
 from scipy.special import erf
 from pynlo.interactions.FourWaveMixing.SSFM import SSFM
-from numpy.fft import fftshift
 from pynlo.media.crystals.XTAL_PPLN import DengSellmeier
+from numpy.fft import fftshift, fft
+from scipy.integrate import simps
+from scipy.signal import butter, freqz
 
 
 # prevent divide by zero errors
@@ -84,10 +86,16 @@ class Pulse(SechPulse):
     # utilizes the pulse class's already built in set_AT function
     def set_AT_experiment(self, T_ps, AT):
         # linearly interpolating function based on the passed in time grid and electric field
-        gridded = interp1d(T_ps, AT, kind='linear', bounds_error=False, fill_value=0 + 0j)
+        # It's important you interpolate amplitude and phase rather than real and imaginary, because those two
+        # methods are different, and the latter results in oscillations in the amplitude!
+        gridded_amplitude = interp1d(T_ps, abs(AT), kind='linear', bounds_error=False, fill_value=0)
+        gridded_phase = interp1d(T_ps, np.unwrap(np.arctan2(AT.imag, AT.real)), kind='linear', bounds_error=False,
+                                 fill_value=0)
+        amplitude = gridded_amplitude(self.T_ps)
+        phase = gridded_phase(self.T_ps)
 
         # the interpolated electric field on the pulse's time grid
-        AT_new = gridded(self.T_ps)
+        AT_new = amplitude * np.exp(1j * phase)
 
         # set the pulse's electric field to the new one
         self.set_AT(AT_new)
@@ -97,12 +105,18 @@ class Pulse(SechPulse):
 
     # set a new field based on: lambda (um), electric field in frequency domain
     # utilizes the pulse class's already built in set_AW function
-    def set_AW_experiment(self, lda_um, AW):
-        # linearly interpolating function based on the passed in wavelength grid and electric field
-        gridded = interp1d(lda_um, AW, kind='linear', bounds_error=False, fill_value=0 + 0j)
+    def set_AW_experiment(self, wl_um, AW):
+        # linearly interpolating function based on the passed in time grid and electric field
+        # It's important you interpolate amplitude and phase rather than real and imaginary, because those two
+        # methods are different, and the latter results in oscillations in the amplitude!
+        gridded_amplitude = interp1d(wl_um, abs(AW), kind='linear', bounds_error=False, fill_value=0)
+        gridded_phase = interp1d(wl_um, np.unwrap(np.arctan2(AW.imag, AW.real)), kind='linear', bounds_error=False,
+                                 fill_value=0)
+        amplitude = gridded_amplitude(self.wl_um)
+        phase = gridded_phase(self.wl_um)
 
-        # the interpolated electric field on the pulse's wavelength grid
-        AW_new = gridded(self.wl_um)
+        # the interpolated electric field on the pulse's time grid
+        AW_new = amplitude * np.exp(1j * phase)
 
         # set the pulse's electric field to the new one
         self.set_AW(AW_new)
@@ -422,3 +436,27 @@ class Fiber(FiberInstance):
             self.betas = np.array(self.convert_D_to_beta(center_wl_nm, betas_Ds[0], betas_Ds[1]))
         else:
             raise ValueError("dispersion format should either be GVD or D")
+
+
+def get_bandpass_filter(ref_pulse, ll_um, ul_um, kind='step'):
+    if kind == 'step':
+        return np.where(np.logical_and(ref_pulse.wl_um >= ll_um, ref_pulse.wl_um <= ul_um), 1, 0)
+    elif kind == 'butter':
+        indices = np.where(np.logical_and(ref_pulse.wl_um >= ll_um, ref_pulse.wl_um <= ul_um))
+        w = np.linspace(0, 1, len(ref_pulse.F_THz))
+        Wn = np.array(w[indices][[0, -1]])
+
+        order = 4
+        b, a = butter(N=order, Wn=Wn, btype='bandpass', analog=False)
+        w, h = freqz(b=b, a=a, worN=len(ref_pulse.F_THz))
+        return h
+    else:
+        raise ValueError('kind should be either step or butter')
+
+
+def power_in_window(pulse, AW, ll_um, ul_um, frep_MHz, kind='step'):
+    h = get_bandpass_filter(pulse, ll_um, ul_um, kind)
+    h = abs(h)
+    filtered = AW * h
+    AT = fftshift(fft(fftshift(filtered, axes=1), axis=1), axes=1)
+    return simps(abs(AT) ** 2, axis=1) * pulse.dT_mks * frep_MHz * 1e6
