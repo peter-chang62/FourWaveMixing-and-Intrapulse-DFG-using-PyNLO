@@ -73,19 +73,19 @@ class Evol:
         self.toplot = toplot
 
     def plot_2dwindow(self, ll_um, ul_um, ax=None):
-        cond = np.logical_and(self.pulse.wl_um >= ll_um, self.pulse.wl_um <= ul_um)
+        cond = np.logical_and(self.pulse.wl_um_fun >= ll_um, self.pulse.wl_um_fun <= ul_um)
         ind = np.where(cond)
         if ax is None:
             fig, ax = plt.subplots(1, 1)
-        ax.pcolormesh(self.pulse.wl_um[ind], self.zs, self.toplot.T[ind].T, shading='auto', cmap='jet')
+        ax.pcolormesh(self.pulse.wl_um_fun[ind], self.zs, self.toplot.T[ind].T, shading='auto', cmap='jet')
         ax.set_xlabel('wavelength ($\mathrm{\mu m}$)')
         ax.set_ylabel("z (mm)")
 
     def plot_1dwindow(self, ax=None):
-        ind = np.where(self.pulse.wl_um >= 0)
+        ind = np.where(self.pulse.wl_um_fun >= 0)
         if ax is None:
             fig, ax = plt.subplots(1, 1)
-        ax.semilogy(self.pulse.wl_um[ind], normalize(abs(self.pulse.AW[ind]) ** 2))
+        ax.semilogy(self.pulse.wl_um_fun[ind], normalize(abs(self.pulse.AW[ind]) ** 2))
         ax.set_xlim(1, 6)
         ax.set_ylim(1e-6, 1)
         ax.set_xlabel('wavelength ($\mathrm{\mu m}$)')

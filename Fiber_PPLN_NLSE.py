@@ -436,9 +436,9 @@ class Fiber(FiberInstance):
 
 def get_bandpass_filter(ref_pulse, ll_um, ul_um, kind='step'):
     if kind == 'step':
-        return np.where(np.logical_and(ref_pulse.wl_um >= ll_um, ref_pulse.wl_um <= ul_um), 1, 0)
+        return np.where(np.logical_and(ref_pulse.wl_um_fun >= ll_um, ref_pulse.wl_um_fun <= ul_um), 1, 0)
     elif kind == 'butter':
-        indices = np.where(np.logical_and(ref_pulse.wl_um >= ll_um, ref_pulse.wl_um <= ul_um))
+        indices = np.where(np.logical_and(ref_pulse.wl_um_fun >= ll_um, ref_pulse.wl_um_fun <= ul_um))
         w = np.linspace(0, 1, len(ref_pulse.F_THz))
         Wn = np.array(w[indices][[0, -1]])
 
