@@ -11,6 +11,7 @@ from pynlo.media.crystals.XTAL_PPLN import DengSellmeier
 from numpy.fft import fftshift, fft
 from scipy.integrate import simps
 from scipy.signal import butter, freqz
+from pynlo.media.fibers.calculators import DTabulationToBetas
 
 
 # prevent divide by zero errors
@@ -405,6 +406,10 @@ class Fiber(FiberInstance):
         beta2 = -lamda ** 2 * D / (2 * np.pi * c)
         beta3 = lamda ** 3 * (2 * D + Dprime * lamda) / (4 * c ** 2 * np.pi ** 2)
         return beta2, beta3
+
+    def get_betas_from_Dcurve(self, lamda_nm, D_psnmkm, pulse):
+        return DTabulationToBetas(pulse.center_wavelength_nm, np.vstack((lamda_nm, D_psnmkm)).T, 2., DDataIsFile=False,
+                           return_diagnostics=False)
 
     # GVD is in terms of ps^n/m
     # and D is in terms of ps/nmkm
