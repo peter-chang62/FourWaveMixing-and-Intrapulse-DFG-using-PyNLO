@@ -19,7 +19,7 @@ def num_over_denom(num, denom):
     return np.where(abs(denom) > 1e-15, num / (denom + 1e-20), 0.0)
 
 
-def get_betas_from_Dcurve(self, lamda_nm, D_psnmkm, pulse):
+def get_betas_from_Dcurve(lamda_nm, D_psnmkm, pulse):
     return DTabulationToBetas(pulse.center_wavelength_nm, np.vstack((lamda_nm, D_psnmkm)).T, 2., DDataIsFile=False,
                               return_diagnostics=False)
 
