@@ -462,3 +462,10 @@ def power_in_window(pulse, AW, ll_um, ul_um, frep_MHz, kind='step'):
     filtered = AW * h
     AT = fftshift(fft(fftshift(filtered, axes=1), axis=1), axes=1)
     return simps(abs(AT) ** 2, axis=1) * pulse.dT_mks * frep_MHz * 1e6
+
+
+def get_2d_evolv(aw2d):
+    norm = np.max(abs(aw2d) ** 2, axis=1)
+    toplot = abs(aw2d) ** 2
+    toplot = (toplot.T / norm).T
+    return toplot
