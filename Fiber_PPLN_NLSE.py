@@ -19,6 +19,11 @@ def num_over_denom(num, denom):
     return np.where(abs(denom) > 1e-15, num / (denom + 1e-20), 0.0)
 
 
+def get_betas_from_Dcurve(self, lamda_nm, D_psnmkm, pulse):
+    return DTabulationToBetas(pulse.center_wavelength_nm, np.vstack((lamda_nm, D_psnmkm)).T, 2., DDataIsFile=False,
+                              return_diagnostics=False)
+
+
 # absorption coefficient of PPLN
 # angular frequency in THz -> absorption coefficient (1/m)
 def Alpha(W_THz):
@@ -406,10 +411,6 @@ class Fiber(FiberInstance):
         beta2 = -lamda ** 2 * D / (2 * np.pi * c)
         beta3 = lamda ** 3 * (2 * D + Dprime * lamda) / (4 * c ** 2 * np.pi ** 2)
         return beta2, beta3
-
-    def get_betas_from_Dcurve(self, lamda_nm, D_psnmkm, pulse):
-        return DTabulationToBetas(pulse.center_wavelength_nm, np.vstack((lamda_nm, D_psnmkm)).T, 2., DDataIsFile=False,
-                           return_diagnostics=False)
 
     # GVD is in terms of ps^n/m
     # and D is in terms of ps/nmkm
