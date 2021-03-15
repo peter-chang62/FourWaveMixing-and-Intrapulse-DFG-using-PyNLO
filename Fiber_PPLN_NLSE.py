@@ -12,6 +12,7 @@ from numpy.fft import fftshift, fft
 from scipy.integrate import simps
 from scipy.signal import butter, freqz
 from pynlo.media.fibers.calculators import DTabulationToBetas
+import copy
 
 
 # prevent divide by zero errors
@@ -310,8 +311,7 @@ class PPLNThreeWaveMixing(SSFM):
         print("Pulse energy before", fiber.fibertype, ":",
               1e9 * pulse_in.calc_epp(), 'nJ')
 
-        pulse_out = Pulse()
-        pulse_out.clone_pulse(pulse_in)
+        pulse_out = copy.deepcopy(pulse_in)
         self.setup_fftw(pulse_in, fiber, output_power)
         self.load_fiber_parameters(pulse_in, fiber, output_power)
 
