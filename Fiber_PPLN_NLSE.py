@@ -311,6 +311,9 @@ class PPLNThreeWaveMixing(SSFM):
         print("Pulse energy before", fiber.fibertype, ":",
               1e9 * pulse_in.calc_epp(), 'nJ')
 
+        # using deepcopy instead of the Pulse's clone function
+        # I had some issue using the clone function that might have had to do with the number of projects
+        # I had open in the same Pycharm window
         pulse_out = copy.deepcopy(pulse_in)
         self.setup_fftw(pulse_in, fiber, output_power)
         self.load_fiber_parameters(pulse_in, fiber, output_power)
