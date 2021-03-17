@@ -140,7 +140,7 @@ class PPLN(FiberInstance):
         self.x, self.y = lda_nm, n
 
     # the equivalent of the FiberInstance's self.generate_fiber function
-    def generate_ppln(self, pulse, length, center_wl_nm, poling_period_um):
+    def generate_ppln(self, pulse, length_m, center_wl_nm, poling_period_um):
         # calculate chi2_parameter based on Alex's Matlab code
         w0 = pulse.center_frequency_THz * 2 * np.pi
         deff = 19.6e-12
@@ -153,7 +153,7 @@ class PPLN(FiberInstance):
         chi2_param = (1 / 4) * (chi2 / n0) * (w0 * 1e12 / self.c_mks) * np.sqrt(2 / (e0 * self.c_mks * Aeff))
 
         # set the crystal length, center_wavelength, poling_period, gain, and refractive index
-        self.length = length
+        self.length = length_m
         self.center_wavelength = center_wl_nm
         self.poling_period_mks = poling_period_um * 1e-6
         self.gain = - Alpha(pulse.W_THz)
