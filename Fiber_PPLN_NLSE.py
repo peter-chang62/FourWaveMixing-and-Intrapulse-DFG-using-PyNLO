@@ -443,25 +443,12 @@ class Fiber(FiberInstance):
             raise ValueError("dispersion format should either be GVD or D")
 
 
-def get_bandpass_filter(ref_pulse, ll_um, ul_um, kind='step'):
-    if kind == 'step':
-        return np.where(np.logical_and(ref_pulse.wl_um >= ll_um, ref_pulse.wl_um <= ul_um), 1, 0)
-    elif kind == 'butter':
-        indices = np.where(np.logical_and(ref_pulse.wl_um >= ll_um, ref_pulse.wl_um <= ul_um))
-        w = np.linspace(0, 1, len(ref_pulse.F_THz))
-        Wn = np.array(w[indices][[0, -1]])
-
-        order = 4
-        b, a = butter(N=order, Wn=Wn, btype='bandpass', analog=False)
-        w, h = freqz(b=b, a=a, worN=len(ref_pulse.F_THz))
-        return h
-    else:
-        raise ValueError('kind should be either step or butter')
+def get_bandpass_filter(ref_pulse, ll_um, ul_um):
+    return np.where(np.logical_and(ref_pulse.wl_um >= ll_um, ref_pulse.wl_um <= ul_um), 1, 0)
 
 
-def power_in_window(pulse, AW, ll_um, ul_um, frep_MHz, kind='step'):
-    h = get_bandpass_filter(pulse, ll_um, ul_um, kind)
-    h = abs(h)
+def power_in_window(pulse, AW, ll_um, ul_um, frep_MHz):
+    h = get_bandpass_filter(pulse, ll_um, ul_um)
     filtered = AW * h
     AT = fftshift(fft(fftshift(filtered, axes=1), axis=1), axes=1)
     return simps(abs(AT) ** 2, axis=1) * pulse.dT_mks * frep_MHz * 1e6

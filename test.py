@@ -1,5 +1,6 @@
 import numpy as np
-from Fiber_PPLN_NLSE import Pulse, PPLN, PPLNThreeWaveMixing, FiberFourWaveMixing, Fiber
+from Fiber_PPLN_NLSE import Pulse, PPLN, PPLNThreeWaveMixing, \
+    FiberFourWaveMixing, Fiber
 import matplotlib.pyplot as plt
 import clipboard_and_style_sheet
 
@@ -43,7 +44,8 @@ pulse = Pulse(T0_ps=200e-3)
 # D = -1.1 ps/nmkm, Dprime = 0.027 ps/nm^2km
 # alpha = 0.8 dB/km converted to 1/m
 fiber = Fiber()
-fiber.generate_fiber(0.4, 1550, [-1.1, 0.027], 10.5e-3, (- 10 ** (0.8 / 10)) * 1e-3, 'D')
+fiber.generate_fiber(0.4, 1550, [-1.1, 0.027],
+                     10.5e-3, (- 10 ** (0.8 / 10)) * 1e-3, 'D')
 
 # simulate
 ssfm = FiberFourWaveMixing()
@@ -58,6 +60,9 @@ plt.xlim(1.2, 1.8)
 # plot the intrapulse DFG in PPLN using Alex's pulse
 fig, ax = plt.subplots(1, 1)
 indices = np.where(pulse.wl_nm >= 0)
-ax.semilogy(pulse.wl_um[indices], normalize(abs(resppln.pulse.AW[indices]) ** 2))
+ax.semilogy(pulse.wl_um[indices], normalize(
+    abs(resppln.pulse.AW[indices]) ** 2))
 ax.set_xlim(1, 6)
 ax.set_ylim(1e-6, 1)
+
+plt.show()
