@@ -11,7 +11,6 @@ from pynlo.interactions.FourWaveMixing.SSFM import SSFM
 from pynlo.media.crystals.XTAL_PPLN import DengSellmeier
 from numpy.fft import fftshift, fft
 from scipy.integrate import simps
-from scipy.signal import butter, freqz
 from pynlo.media.fibers.calculators import DTabulationToBetas
 import copy
 
@@ -159,7 +158,7 @@ class PPLN(FiberInstance):
         self.x, self.y = lda_nm, n
 
     # the equivalent of the FiberInstance's self.generate_fiber function
-    def generate_ppln(self, pulse, length, center_wl_nm, poling_period_um,
+    def generate_ppln(self, pulse, length_m, center_wl_nm, poling_period_um,
                       r_um=15.6):
         # calculate chi2_parameter based on Alex's Matlab code
         w0 = pulse.center_frequency_THz * 2 * np.pi
@@ -177,7 +176,7 @@ class PPLN(FiberInstance):
 
         # set the crystal length, center_wavelength, poling_period, gain,
         # and refractive index
-        self.length = length
+        self.length = length_m
         self.center_wavelength = center_wl_nm
         self.poling_period_mks = poling_period_um * 1e-6
         self.gain = - Alpha(pulse.W_THz)
