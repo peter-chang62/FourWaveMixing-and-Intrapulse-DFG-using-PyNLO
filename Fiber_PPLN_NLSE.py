@@ -1,5 +1,6 @@
-"""The absorption coefficient of PPLN (Alpha), gaussian beam calculation (gbeam_approx), chi2 parameter,
-and the nonlinear operator for three wave mixing is taken from Alex's Matlab code """
+"""The absorption coefficient of PPLN (Alpha), gaussian beam calculation (
+gbeam_approx), chi2 parameter, and the nonlinear operator for three wave
+mixing is taken from Alex's Matlab code """
 
 import numpy as np
 from pynlo.light.DerivedPulses import SechPulse
@@ -21,7 +22,9 @@ def num_over_denom(num, denom):
 
 
 def get_betas_from_Dcurve(lamda_nm, D_psnmkm, pulse):
-    return DTabulationToBetas(pulse.center_wavelength_nm, np.vstack((lamda_nm, D_psnmkm)).T, 2., DDataIsFile=False,
+    return DTabulationToBetas(pulse.center_wavelength_nm,
+                              np.vstack((lamda_nm, D_psnmkm)).T, 2.,
+                              DDataIsFile=False,
                               return_diagnostics=False)
 
 
@@ -31,9 +34,9 @@ def Alpha(W_THz):
     return 1e6 * (1 + erf(-(W_THz - 300.) / (10 * np.sqrt(2))))
 
 
-# return the current sign of chi2
-# z pos (m), length of crystal (m), poling period (m) -> +- 1
-# the poling period should be an array such as np.linspace(starting_period, ending_period, 5000)
+# return the current sign of chi2 z pos (m), length of crystal (m), poling
+# period (m) -> +- 1 the poling period should be an array such as
+# np.linspace(starting_period, ending_period, 5000)
 def grating(z, L, poling_period_mks):
     zD = np.linspace(0, L, len(poling_period_mks))
 
@@ -45,7 +48,8 @@ def grating(z, L, poling_period_mks):
 # assumes a gaussian beam with a focus at the center of the crystal
 # pulse instance, length of crystal (m), z pos (m) -> float
 def gbeam_approx(pulse, L, z):
-    """calculating w/wo (gaussian beam), assuming a focus at the center of the crystal """
+    """calculating w/wo (gaussian beam), assuming a focus at the center of
+    the crystal """
     center_wl = pulse.center_wavelength_nm * 1e-9
 
     w_0 = np.pi * 15e-6 ** 2 / center_wl
@@ -56,9 +60,9 @@ def gbeam_approx(pulse, L, z):
 # this is an altered version of pynlo's Pulse class
 class Pulse(SechPulse):
     # setting default values to a sech pulse with T0 = 200 fs
-    # center_wavelength = 1550 nm, no chirp
-    # a time window of 10ps and 2**14 points in the simulation,
-    # a repetition rate of 100 MHz, and pulse energy of 5 nJ (0.5 W average power)
+    # center_wavelength = 1550 nm, no chirp a time window of 10ps and 2**14
+    # points in the simulation, a repetition rate of 100 MHz, and pulse
+    # energy of 5 nJ (0.5 W average power)
     def __init__(self, T0_ps=.2,
                  center_wavelength_nm=1550,
                  time_window_ps=10,
@@ -76,15 +80,17 @@ class Pulse(SechPulse):
                          frep_MHz=frep_MHz,
                          power_is_avg=False)
 
-        # set the pulse energy, and add an attribute of wavelength in micron (nice to have)
+        # set the pulse energy, and add an attribute of wavelength in micron
+        # (nice to have)
         self.wl_um = self.wl_nm * 1e-3
         self.set_epp(EPP_nJ * 1e-9)
 
-        # create this attribute so that later if a new field is set, it can be scaled to what the original pulse
-        # energy was.
+        # create this attribute so that later if a new field is set, it can
+        # be scaled to what the original pulse energy was.
         self.desired_epp = EPP_nJ * 1e-9
 
-    # when setting the pulse energy, also have it update the desired_epp attribute
+    # when setting the pulse energy, also have it update the desired_epp
+    # attribute
     def set_epp(self, desired_epp_J):
         super().set_epp(desired_epp_J)
         self.desired_epp = desired_epp_J
@@ -92,10 +98,13 @@ class Pulse(SechPulse):
     # set a new field based on: time (ps), electric field in time domain
     # utilizes the pulse class's already built in set_AT function
     def set_AT_experiment(self, T_ps, AT):
-        # It's important you interpolate amplitude and phase rather than real and imaginary, because those two
-        # methods are different, and the latter results in oscillations in the amplitude!
-        gridded_amplitude = interp1d(T_ps, abs(AT), kind='linear', bounds_error=False, fill_value=0)
-        gridded_phase = interp1d(T_ps, np.unwrap(np.arctan2(AT.imag, AT.real)), kind='linear', bounds_error=False,
+        # It's important you interpolate amplitude and phase rather than real
+        # and imaginary, because those two methods are different, and the
+        # latter results in oscillations in the amplitude!
+        gridded_amplitude = interp1d(T_ps, abs(AT), kind='linear',
+                                     bounds_error=False, fill_value=0)
+        gridded_phase = interp1d(T_ps, np.unwrap(np.arctan2(AT.imag, AT.real)),
+                                 kind='linear', bounds_error=False,
                                  fill_value=0)
         amplitude = gridded_amplitude(self.T_ps)
         phase = gridded_phase(self.T_ps)
@@ -112,10 +121,13 @@ class Pulse(SechPulse):
     # set a new field based on: lambda (um), electric field in frequency domain
     # utilizes the pulse class's already built in set_AW function
     def set_AW_experiment(self, wl_um, AW):
-        # It's important you interpolate amplitude and phase rather than real and imaginary, because those two
-        # methods are different, and the latter results in oscillations in the amplitude!
-        gridded_amplitude = interp1d(wl_um, abs(AW), kind='linear', bounds_error=False, fill_value=0)
-        gridded_phase = interp1d(wl_um, np.unwrap(np.arctan2(AW.imag, AW.real)), kind='linear', bounds_error=False,
+        # It's important you interpolate amplitude and phase rather than real
+        # and imaginary, because those two methods are different, and the
+        # latter results in oscillations in the amplitude!
+        gridded_amplitude = interp1d(wl_um, abs(AW), kind='linear',
+                                     bounds_error=False, fill_value=0)
+        gridded_phase = interp1d(wl_um, np.unwrap(np.arctan2(AW.imag, AW.real)),
+                                 kind='linear', bounds_error=False,
                                  fill_value=0)
         amplitude = gridded_amplitude(self.wl_um)
         phase = gridded_phase(self.wl_um)
@@ -147,26 +159,32 @@ class PPLN(FiberInstance):
         self.x, self.y = lda_nm, n
 
     # the equivalent of the FiberInstance's self.generate_fiber function
-    def generate_ppln(self, pulse, length, center_wl_nm, poling_period_um):
+    def generate_ppln(self, pulse, length, center_wl_nm, poling_period_um,
+                      r_um=15.6):
         # calculate chi2_parameter based on Alex's Matlab code
         w0 = pulse.center_frequency_THz * 2 * np.pi
         deff = 19.6e-12
         chi2 = 2 * deff
         e0 = 8.85e-12
-        Aeff = np.pi * 15.6e-6 ** 2
+        Aeff = np.pi * (r_um * 1e-6) ** 2
         reference_lamda = np.linspace(.3, 6, 5000) * 1e3  # nm
-        LNJundt = DengSellmeier(24.5).n  # using T = 24.5 C cause that's what Alex did
-        n0 = interp1d(reference_lamda, LNJundt(reference_lamda))(pulse.center_wavelength_nm)
-        chi2_param = (1 / 4) * (chi2 / n0) * (w0 * 1e12 / self.c_mks) * np.sqrt(2 / (e0 * self.c_mks * Aeff))
+        LNJundt = DengSellmeier(
+            24.5).n  # using T = 24.5 C cause that's what Alex did
+        n0 = interp1d(reference_lamda, LNJundt(reference_lamda))(
+            pulse.center_wavelength_nm)
+        chi2_param = (1 / 4) * (chi2 / n0) * (w0 * 1e12 / self.c_mks) * np.sqrt(
+            2 / (e0 * self.c_mks * Aeff))
 
-        # set the crystal length, center_wavelength, poling_period, gain, and refractive index
+        # set the crystal length, center_wavelength, poling_period, gain,
+        # and refractive index
         self.length = length
         self.center_wavelength = center_wl_nm
         self.poling_period_mks = poling_period_um * 1e-6
         self.gain = - Alpha(pulse.W_THz)
         self.fiberspecs['is_gain'] = True
         self.fiberspecs['gain_x_data'] = None
-        self.set_refractive_index(reference_lamda / 1000, LNJundt(reference_lamda))
+        self.set_refractive_index(reference_lamda / 1000,
+                                  LNJundt(reference_lamda))
 
         # the gamma (chi2_parameter) changes with z
         def gamma_function(z):
@@ -174,14 +192,15 @@ class PPLN(FiberInstance):
 
         self.set_gamma_function(gamma_function)
 
-    # alter the self.get_betas function so that it stores beta0 and beta1 which will be needed in the
-    # three wave mixing nonlinear operator later.
+    # alter the self.get_betas function so that it stores beta0 and beta1
+    # which will be needed in the three wave mixing nonlinear operator later.
     def get_betas(self, pulse, z=0):
         supplied_W_THz = 2 * np.pi * 1e-12 * 3e8 / (self.x * 1e-9)
         supplied_betas = self.y * 2 * np.pi / (self.x * 1e-9)
 
         # InterpolatedUnivariateSpline wants increasing x, so flip arrays
-        interpolator = InterpolatedUnivariateSpline(supplied_W_THz[::-1], supplied_betas[::-1])
+        interpolator = InterpolatedUnivariateSpline(supplied_W_THz[::-1],
+                                                    supplied_betas[::-1])
         B = interpolator(pulse.W_THz)
         center_index = np.argmin(np.abs(pulse.V_THz))
         slope = np.gradient(B) / np.gradient(pulse.W_THz)
@@ -196,8 +215,9 @@ class PPLNThreeWaveMixing(SSFM):
     def __init__(self):
         super().__init__()
 
-    # when loading the PPLN parameters, also record beta0, beta1, and the gamma_function from the PPLN instance
-    # create a self.gbeam_approx method that calculates w/w0 for a given z position (w here is the beam radius)
+    # when loading the PPLN parameters, also record beta0, beta1, and the
+    # gamma_function from the PPLN instance create a self.gbeam_approx method
+    # that calculates w/w0 for a given z position (w here is the beam radius)
     def load_fiber_parameters(self, pulse_in, fiber, output_power, z=0):
         super().load_fiber_parameters(pulse_in, fiber, output_power, z)
         self.beta0 = fiber.beta0
@@ -205,16 +225,17 @@ class PPLNThreeWaveMixing(SSFM):
         self.gamma_function = fiber.gamma_function
         self.gbeam_approx = lambda z: gbeam_approx(pulse_in, fiber.length, z)
 
-    # when setting up the simulation, also create self.T_ps (the pulse's time grid in ps) which will
-    # be needed later for the nonlinear operator
+    # when setting up the simulation, also create self.T_ps (the pulse's time
+    # grid in ps) which will be needed later for the nonlinear operator
     def setup_fftw(self, pulse_in, fiber, output_power, raman_plots=False):
         super().setup_fftw(pulse_in, fiber, output_power, raman_plots)
         self.T_ps = pulse_in.T_ps
 
-    # this is an altered version of the Four Wave Mixing class's integrate_over_dz method
-    # I changes two things: 1) update the current z-position (self.z), 2) instead of integrating over a
-    # distance delta_z, integrate from a given z start to a given z finish, I think the ability to pass in
-    # a zstart parameter makes the chi(z) more accurate.
+    # this is an altered version of the Four Wave Mixing class's
+    # integrate_over_dz method I changes two things: 1) update the current
+    # z-position (self.z), 2) instead of integrating over a distance delta_z,
+    # integrate from a given z start to a given z finish, I think the ability
+    # to pass in a zstart parameter makes the chi(z) more accurate.
     def integrate_over_dz(self, zstart, zfinish, direction=1):
         dist = zfinish - zstart
         dz = self.dz
@@ -240,7 +261,8 @@ class PPLNThreeWaveMixing(SSFM):
             old_dz = dz
             new_dz = dz
             if not self.suppress_iteration:
-                print("iteration:", self.iter, "dz:", dz, "distance:", dist, "local error", delta)
+                print("iteration:", self.iter, "dz:", dz, "distance:", dist,
+                      "local error", delta)
 
             if delta > 2.0 * self.local_error:
                 # Discard the solution, decrease step
@@ -252,14 +274,16 @@ class PPLNThreeWaveMixing(SSFM):
                 else:
                     # accept step after all
                     pass
-            elif (delta >= self.local_error) and (delta <= 2.0 * self.local_error):
+            elif (delta >= self.local_error) and (
+                    delta <= 2.0 * self.local_error):
                 # Keep solution, decrease step
                 new_dz = dz / factor
                 if new_dz >= self.dz_min:
                     dz = new_dz
                 else:
                     pass
-            elif (delta >= (0.5 * self.local_error)) and (delta <= self.local_error):
+            elif (delta >= (0.5 * self.local_error)) and (
+                    delta <= self.local_error):
                 # keep the step
                 new_dz = new_dz
             else:  # delta < local_error/2
@@ -272,7 +296,8 @@ class PPLNThreeWaveMixing(SSFM):
                 self.A[:] = (16.0 / 15.0) * self.Af - (1.0 / 15.0) * self.Ac
             else:
                 p = 2.0 ** (self.eta - 1.0)
-                self.A[:] = (p / (p - 1.0)) * self.Af - (1.0 / (p - 1.0)) * self.Ac
+                self.A[:] = (p / (p - 1.0)) * self.Af - (
+                        1.0 / (p - 1.0)) * self.Ac
 
             dist -= 2.0 * old_dz
             self.iter += 1
@@ -287,15 +312,18 @@ class PPLNThreeWaveMixing(SSFM):
             dz = return_dz
         self.dz = dz
 
-    # this is an altered version of the propagate function in the Four Wave Mixing Class
-    # I changed two things: 1) pass self.integrate_over_dz a zstart and zfinish instead of delta_z,
-    # 2) return a class instead of a tuple (nice to have)
-    def propagate(self, pulse_in, fiber, n_steps, output_power=None, reload_fiber_each_step=False):
+    # this is an altered version of the propagate function in the Four Wave
+    # Mixing Class I changed two things: 1) pass self.integrate_over_dz a
+    # zstart and zfinish instead of delta_z, 2) return a class instead of a
+    # tuple (nice to have)
+    def propagate(self, pulse_in, fiber, n_steps, output_power=None,
+                  reload_fiber_each_step=False):
         n_steps = int(n_steps)
 
-        # Copy parameters from pulse and fiber into class-wide variables
-        # I changed the original z_positions which was an arange with n_steps+1 entry
-        # I added zs which will record the actual z positions where the spectrum was returned
+        # Copy parameters from pulse and fiber into class-wide variables I
+        # changed the original z_positions which was an arange with n_steps+1
+        # entry I added zs which will record the actual z positions where the
+        # spectrum was returned
         z_positions = np.linspace(0, fiber.length, n_steps)
         zs = np.zeros(len(z_positions))
         if n_steps == 1:
@@ -311,9 +339,9 @@ class PPLNThreeWaveMixing(SSFM):
         print("Pulse energy before", fiber.fibertype, ":",
               1e9 * pulse_in.calc_epp(), 'nJ')
 
-        # using deepcopy instead of the Pulse's clone function
-        # I had some issue using the clone function that might have had to do with the number of projects
-        # I had open in the same Pycharm window
+        # using deepcopy instead of the Pulse's clone function I had some
+        # issue using the clone function that might have had to do with the
+        # number of projects I had open in the same Pycharm window
         pulse_out = copy.deepcopy(pulse_in)
         self.setup_fftw(pulse_in, fiber, output_power)
         self.load_fiber_parameters(pulse_in, fiber, output_power)
@@ -326,10 +354,12 @@ class PPLNThreeWaveMixing(SSFM):
             # zfinish is the next position where I want to record the spectrum
             zfinish = z_positions[i]
 
-            print("Step:", i, "Distance remaining:", fiber.length * (1 - np.float(i) / n_steps))
+            print("Step:", i, "Distance remaining:",
+                  fiber.length * (1 - np.float(i) / n_steps))
 
             if reload_fiber_each_step:
-                self.load_fiber_parameters(pulse_in, fiber, output_power, z=i * delta_z)
+                self.load_fiber_parameters(pulse_in, fiber, output_power,
+                                           z=i * delta_z)
 
             self.integrate_over_dz(zstart, zfinish)
             AW[:, i] = self.conditional_ifftshift(self.FFT_t_2(self.A))
@@ -345,7 +375,8 @@ class PPLNThreeWaveMixing(SSFM):
               1e9 * pulse_out.calc_epp(), 'nJ')
         self.cleanup()
 
-        # I added this, originaly it would have returned z_positions, AW, AT, pulse_out
+        # I added this, originaly it would have returned z_positions, AW, AT,
+        # pulse_out
         class res:
             def __init__(self):
                 self.zs = zs
@@ -378,14 +409,16 @@ class PPLNThreeWaveMixing(SSFM):
         exp_phi = fftshift(exp_phi)
 
         nLterm = (2 * A + (2j / w0) * dA) * exp_neg_phi + \
-                 num_over_denom((4j / w0) * np.real(np.conj(A) * dA) * exp_phi, A)
+                 num_over_denom((4j / w0) * np.real(np.conj(A) * dA) * exp_phi,
+                                A)
 
         return 1j * chi * nLterm
 
 
-# I liked the change to the integrate_over_dz and propagate function in the Three Wave Mixing class
-# and so here is the Four Wave Mixing class with the same alterations, I'm not changing the Nonlinear Operator
-# and so the simulation here is still for SPM
+# I liked the change to the integrate_over_dz and propagate function in the
+# Three Wave Mixing class and so here is the Four Wave Mixing class with the
+# same alterations, I'm not changing the Nonlinear Operator and so the
+# simulation here is still for SPM
 class FiberFourWaveMixing(SSFM):
     def __init__(self):
         super().__init__()
@@ -393,13 +426,15 @@ class FiberFourWaveMixing(SSFM):
     def integrate_over_dz(self, zstart, zfinish, direction=1):
         PPLNThreeWaveMixing.integrate_over_dz(self, zstart, zfinish, direction)
 
-    def propagate(self, pulse_in, fiber, n_steps, output_power=None, reload_fiber_each_step=False):
-        return PPLNThreeWaveMixing.propagate(self, pulse_in, fiber, n_steps, output_power,
+    def propagate(self, pulse_in, fiber, n_steps, output_power=None,
+                  reload_fiber_each_step=False):
+        return PPLNThreeWaveMixing.propagate(self, pulse_in, fiber, n_steps,
+                                             output_power,
                                              reload_fiber_each_step)
 
 
-# This is the FiberInstance class with the added ability to set the dispersion based on D and Dprime
-# instead of having to pass in betas
+# This is the FiberInstance class with the added ability to set the
+# dispersion based on D and Dprime instead of having to pass in betas
 class Fiber(FiberInstance):
     def __init__(self):
         super().__init__()
@@ -412,7 +447,8 @@ class Fiber(FiberInstance):
         lamda = lamda_nm * 1e-9  # nm -> m
 
         beta2 = -lamda ** 2 * D / (2 * np.pi * c)
-        beta3 = lamda ** 3 * (2 * D + Dprime * lamda) / (4 * c ** 2 * np.pi ** 2)
+        beta3 = lamda ** 3 * (2 * D + Dprime * lamda) / (
+                4 * c ** 2 * np.pi ** 2)
         return beta2, beta3
 
     # GVD is in terms of ps^n/m
@@ -438,13 +474,16 @@ class Fiber(FiberInstance):
         if dispersion_format == 'GVD':
             self.betas = np.copy(np.array(betas_Ds))
         elif dispersion_format == 'D':
-            self.betas = np.array(self.convert_D_to_beta(center_wl_nm, betas_Ds[0], betas_Ds[1]))
+            self.betas = np.array(
+                self.convert_D_to_beta(center_wl_nm, betas_Ds[0], betas_Ds[1]))
         else:
             raise ValueError("dispersion format should either be GVD or D")
 
 
 def get_bandpass_filter(ref_pulse, ll_um, ul_um):
-    return np.where(np.logical_and(ref_pulse.wl_um >= ll_um, ref_pulse.wl_um <= ul_um), 1, 0)
+    return np.where(
+        np.logical_and(ref_pulse.wl_um >= ll_um, ref_pulse.wl_um <= ul_um), 1,
+        0)
 
 
 def power_in_window(pulse, AW, ll_um, ul_um, frep_MHz):
