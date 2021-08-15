@@ -10,6 +10,7 @@ clipboard_and_style_sheet.style_sheet()
 normalize = lambda vec: vec / np.max(abs(vec))
 
 
+# %% Nazanin's Pulse
 def get_data(path=None):
     if path is None:
         freq_data = np.genfromtxt("Recunstructed FROG_ 21fs "
@@ -47,3 +48,5 @@ ind = (pulse.wl_um >= 0).nonzero()
 ax.semilogy(pulse.wl_um[ind], normalize(abs(sim_output.pulse.AW[ind]) ** 2))
 ax.set_xlim(1, 6)
 ax.set_ylim(1e-6, 1)
+
+# %% new code cell
