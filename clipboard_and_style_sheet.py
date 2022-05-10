@@ -1,6 +1,6 @@
 import io
 import matplotlib.pyplot as plt
-from PySide2.QtGui import QGuiApplication, QImage
+from PyQt5.QtGui import QGuiApplication, QImage
 
 
 def style_sheet():
