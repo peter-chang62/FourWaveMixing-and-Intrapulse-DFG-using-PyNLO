@@ -38,7 +38,7 @@ wl2 = 1.56  # 1560 nm
 wl1 = np.linspace(.7, 1.25, 5000)
 dk, dfgwl = phase_mismatch(wl1, wl2)
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
+fig, (ax2, ax1, ax3) = plt.subplots(1, 3, figsize=(15, 5))
 ax1.plot(wl1, dk)
 ax2.plot(wl1, dfgwl)
 ax3.plot(wl1, 1 / dk)
@@ -75,7 +75,7 @@ indices = np.where(np.logical_or(Dfgwl <= 3, Dfgwl >= 5))
 Dfgwl[indices] = np.nan
 Dk[indices] = np.nan
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(17, 5))
+fig, (ax2, ax1, ax3) = plt.subplots(1, 3, figsize=(17, 5))
 map1 = ax1.pcolormesh(Wl1, Wl2, Dk, shading='auto')
 map2 = ax2.pcolormesh(Wl1, Wl2, Dfgwl, shading='auto')
 map3 = ax3.pcolormesh(Wl1, Wl2, 1 / Dk, shading='auto')
@@ -100,7 +100,7 @@ indices = np.where(np.logical_or(Dfgwl <= 3, Dfgwl >= 5))
 Dfgwl[indices] = np.nan
 Dk[indices] = np.nan
 
-fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(17, 5))
+fig, (ax2, ax1, ax3) = plt.subplots(1, 3, figsize=(17, 5))
 map1 = ax1.pcolormesh(Wl1, Wl2, Dk, shading='auto')
 map2 = ax2.pcolormesh(Wl1, Wl2, Dfgwl, shading='auto')
 map3 = ax3.pcolormesh(Wl1, Wl2, 1 / Dk, shading='auto')
