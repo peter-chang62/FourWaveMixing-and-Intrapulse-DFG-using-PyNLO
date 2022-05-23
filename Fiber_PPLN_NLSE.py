@@ -10,24 +10,42 @@ from pynlo.interactions.FourWaveMixing.SSFM import SSFM
 from pynlo.media.crystals.XTAL_PPLN import DengSellmeier
 from numpy.fft import fftshift, fft
 from scipy.integrate import simps
-from scipy.signal import butter, freqz
 from pynlo.media.fibers.calculators import DTabulationToBetas
 import copy
 
 
 # prevent divide by zero errors
 def num_over_denom(num, denom):
+    """
+    :param num: numerator
+    :param denom: denominator
+    :return: 0 where the denominator is less than 1e-15, otherwise num / (denom + 1e-20)
+
+    prevents divide by zero errors
+    """
     return np.where(abs(denom) > 1e-15, num / (denom + 1e-20), 0.0)
 
 
-def get_betas_from_Dcurve(lamda_nm, D_psnmkm, pulse):
-    return DTabulationToBetas(pulse.center_wavelength_nm, np.vstack((lamda_nm, D_psnmkm)).T, 2., DDataIsFile=False,
-                              return_diagnostics=False)
+def get_betas_from_Dcurve(lamda_nm, D_psnmkm, pulse, polyOrder=2):
+    """
+    :param lamda_nm: wavelength axis in nm
+    :param D_psnmkm: D value at each wavelength
+    :param pulse: pulse (used for center wavelength in series expansion)
+    :return: [beta2, beta3, ...] up to polyorder
+    """
+    return DTabulationToBetas(pulse.center_wavelength_nm, np.vstack((lamda_nm, D_psnmkm)).T, polyOrder,
+                              DDataIsFile=False, return_diagnostics=False)
 
 
 # absorption coefficient of PPLN
 # angular frequency in THz -> absorption coefficient (1/m)
 def Alpha(W_THz):
+    """
+    :param W_THz: angular frequency in THz
+    :return: absorption coefficient (1/m)
+
+    I got this equation from Alex's code
+    """
     return 1e6 * (1 + erf(-(W_THz - 300.) / (10 * np.sqrt(2))))
 
 
@@ -35,6 +53,15 @@ def Alpha(W_THz):
 # z pos (m), length of crystal (m), poling period (m) -> +- 1
 # the poling period should be an array such as np.linspace(starting_period, ending_period, 5000)
 def grating(z, L, poling_period_mks):
+    """
+    :param z: float
+    :param L: total length of crystal
+    :param poling_period_mks: 1D array poling period (m)
+    :return: +- 1
+
+    This function takes the poling period that is a 1D array and the length of the crystal L, to determine
+    the sign of chi2 at a given z (float). It does this via interpolation
+    """
     zD = np.linspace(0, L, len(poling_period_mks))
 
     period = interp1d(zD, poling_period_mks)(z)
@@ -44,11 +71,24 @@ def grating(z, L, poling_period_mks):
 # calculates w/w0 where w is the beam radius
 # assumes a gaussian beam with a focus at the center of the crystal
 # pulse instance, length of crystal (m), z pos (m) -> float
-def gbeam_approx(pulse, L, z):
-    """calculating w/wo (gaussian beam), assuming a focus at the center of the crystal """
+def gbeam_approx(pulse, L, z, r_um=15):
+    """
+    :param pulse: pulse instance (for center wavelength)
+    :param L: length of the crystal (m)
+    :param z: position inside the crystal (m)
+    :param r_um: radius at the beam focus
+    :return: w/w0 (float)
+
+    calculating wo/w (gaussian beam), assuming a focus at the center of the crystal, this is a normalization
+    factor for the overall intensity
+
+    the chi2 parameter is scaled by 1 / sqrt(Aeff), where Aeff is effective area. We calculate this at the start of the
+    simulation and initialize chi 2 using Aeff at the focus. From there we scale chi2 by w/w0 at each position
+    in the crystal (wo/w should be 1 t the center of the crystal).
+    """
     center_wl = pulse.center_wavelength_nm * 1e-9
 
-    w_0 = np.pi * 15e-6 ** 2 / center_wl
+    w_0 = np.pi * (r_um * 1e-6) ** 2 / center_wl
     return 1 / np.sqrt(1 + ((z - L / 2) / w_0) ** 2)
 
 
@@ -67,6 +107,18 @@ class Pulse(SechPulse):
                  NPTS=2 ** 14,
                  frep_MHz=100,
                  EPP_nJ=5.0):
+
+        """
+        :param T0_ps:
+        :param center_wavelength_nm:
+        :param time_window_ps:
+        :param GDD:
+        :param TOD:
+        :param NPTS:
+        :param frep_MHz:
+        :param EPP_nJ:
+        """
+
         super().__init__(power=1,  # Power will be scaled by set_epp
                          T0_ps=T0_ps,
                          center_wavelength_nm=center_wavelength_nm,
@@ -147,15 +199,15 @@ class PPLN(FiberInstance):
         self.x, self.y = lda_nm, n
 
     # the equivalent of the FiberInstance's self.generate_fiber function
-    def generate_ppln(self, pulse, length, center_wl_nm, poling_period_um):
+    def generate_ppln(self, pulse, length, center_wl_nm, poling_period_um, r_um=15, T_C=24.5):
         # calculate chi2_parameter based on Alex's Matlab code
         w0 = pulse.center_frequency_THz * 2 * np.pi
         deff = 19.6e-12
         chi2 = 2 * deff
         e0 = 8.85e-12
-        Aeff = np.pi * 15.6e-6 ** 2
+        Aeff = np.pi * (r_um * 1e-6) ** 2
         reference_lamda = np.linspace(.3, 6, 5000) * 1e3  # nm
-        LNJundt = DengSellmeier(24.5).n  # using T = 24.5 C cause that's what Alex did
+        LNJundt = DengSellmeier(T_C).n  # using T = 24.5 C cause that's what Alex did
         n0 = interp1d(reference_lamda, LNJundt(reference_lamda))(pulse.center_wavelength_nm)
         chi2_param = (1 / 4) * (chi2 / n0) * (w0 * 1e12 / self.c_mks) * np.sqrt(2 / (e0 * self.c_mks * Aeff))
 
@@ -173,6 +225,8 @@ class PPLN(FiberInstance):
             return chi2_param * grating(z, self.length, self.poling_period_mks)
 
         self.set_gamma_function(gamma_function)
+
+        self.r_um = r_um
 
     # alter the self.get_betas function so that it stores beta0 and beta1 which will be needed in the
     # three wave mixing nonlinear operator later.
@@ -203,7 +257,7 @@ class PPLNThreeWaveMixing(SSFM):
         self.beta0 = fiber.beta0
         self.beta1 = fiber.beta1
         self.gamma_function = fiber.gamma_function
-        self.gbeam_approx = lambda z: gbeam_approx(pulse_in, fiber.length, z)
+        self.gbeam_approx = lambda z: gbeam_approx(pulse_in, fiber.length, z, fiber.r_um)
 
     # when setting up the simulation, also create self.T_ps (the pulse's time grid in ps) which will
     # be needed later for the nonlinear operator
