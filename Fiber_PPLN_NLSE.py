@@ -68,6 +68,7 @@ def grating(z, L, poling_period_mks):
     return np.sign(np.cos(2 * np.pi * z / period))
 
 
+# TODO allow user to set the focus spot size (right now the radius is assumed to be 15 micron)
 # calculates w/w0 where w is the beam radius
 # assumes a gaussian beam with a focus at the center of the crystal
 # pulse instance, length of crystal (m), z pos (m) -> float
