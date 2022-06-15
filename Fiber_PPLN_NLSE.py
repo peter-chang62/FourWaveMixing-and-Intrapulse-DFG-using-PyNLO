@@ -107,9 +107,8 @@ class Pulse(SechPulse):
                  NPTS=2 ** 14,
                  frep_MHz=100,
                  EPP_nJ=5.0):
-
         """
-        :param T0_ps:
+        :param T0_ps: pulse duration (for creating sech pulse)
         :param center_wavelength_nm:
         :param time_window_ps:
         :param GDD:
@@ -138,12 +137,21 @@ class Pulse(SechPulse):
 
     # when setting the pulse energy, also have it update the desired_epp attribute
     def set_epp(self, desired_epp_J):
+        """
+        :param desired_epp_J:
+        :return:
+        """
         super().set_epp(desired_epp_J)
         self.desired_epp = desired_epp_J
 
     # set a new field based on: time (ps), electric field in time domain
     # utilizes the pulse class's already built in set_AT function
     def set_AT_experiment(self, T_ps, AT):
+        """
+        :param T_ps:
+        :param AT:
+        :return:
+        """
         # It's important you interpolate amplitude and phase rather than real and imaginary, because those two
         # methods are different, and the latter results in oscillations in the amplitude!
         gridded_amplitude = interp1d(T_ps, abs(AT), kind='linear', bounds_error=False, fill_value=0)
@@ -164,6 +172,11 @@ class Pulse(SechPulse):
     # set a new field based on: lambda (um), electric field in frequency domain
     # utilizes the pulse class's already built in set_AW function
     def set_AW_experiment(self, wl_um, AW):
+        """
+        :param wl_um:
+        :param AW:
+        :return:
+        """
         # It's important you interpolate amplitude and phase rather than real and imaginary, because those two
         # methods are different, and the latter results in oscillations in the amplitude!
         gridded_amplitude = interp1d(wl_um, abs(AW), kind='linear', bounds_error=False, fill_value=0)
