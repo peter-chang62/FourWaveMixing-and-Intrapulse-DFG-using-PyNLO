@@ -48,7 +48,8 @@ def plot_freq_evolv(sim, ax=None, xlims=None):
                   shading='auto')
 
     if xlims is None:
-        ax.set_xlim(1, 2)
+        # ax.set_xlim(1, 2)
+        pass
     else:
         ax.set_xlim(*xlims)
     ax.set_xlabel("$\mathrm{\mu m}$")
@@ -62,7 +63,7 @@ def plot_time_evolv(sim, ax=None):
     toplot = get_2d_time_evolv(sim.AT)
     ax.pcolormesh(sim.pulse.T_ps, (sim.zs * 100.), toplot, cmap='jet',
                   shading='auto')
-    ax.set_xlim(-1.5, 1.5)
+    # ax.set_xlim(-1.5, 1.5)
     ax.set_xlabel("ps")
     ax.set_ylabel("cm")
 
