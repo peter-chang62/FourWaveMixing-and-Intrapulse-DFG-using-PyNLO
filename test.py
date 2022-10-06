@@ -30,7 +30,7 @@ pulse.set_AT_experiment(T_ps, AT)
 # create a ppln instance
 ppln = PPLN()
 poling_period = np.linspace(27.5, 34.5, 5000)  # um
-ppln.generate_ppln(pulse, 1e-3, 1550, poling_period)
+ppln.generate_ppln(pulse, 1e-3, 1550, poling_period, 15.0)
 
 # simulate
 ssfm = PPLNThreeWaveMixing()
