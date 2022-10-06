@@ -40,4 +40,8 @@ def add_clipboard_to_figures():
     plt.figure = newfig
 
 
+def square():
+    plt.gca().set_aspect('equal', adjustable='box')
+
+
 add_clipboard_to_figures()
