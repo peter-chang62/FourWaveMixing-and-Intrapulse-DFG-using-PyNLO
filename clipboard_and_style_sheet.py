@@ -12,6 +12,7 @@ def style_sheet():
         'ytick.labelsize': 16,
         "axes.labelsize": 16,
         "figure.autolayout": True,
+        "font.size": 16
     })
 
 
